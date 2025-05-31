@@ -37,10 +37,19 @@ size_t Matrix::getColNumber() const{
 }
 
 double Matrix::getValue(size_t i, size_t j) const{
+    
+    if (i >= getRowNumber() || j >= getColNumber()) {
+        
+        throw std::out_of_range("Row index out of range in getValue.\n");
+    }
     return matrix_[i][j];
 }
 
 void Matrix::setValue(size_t i, size_t j, double value) {
+    //std::cout << i << getRowNumber() << j << getColNumber() << std::endl;
+    if (i >= getRowNumber() || j >= getColNumber()) {
+        throw std::out_of_range("Row index out of range in setValue");
+    }
     matrix_[i][j] = value;
 }
 

@@ -22,7 +22,7 @@ public:
     /**
      * @brief 生成N阶方阵，可选类型
      * @param size 方阵大小
-     * @param type 方阵类型，UNIT_MATRIX：单位矩阵
+     * @param type 方阵类型，UNIT_MATRIX：单位矩阵, ZERO_MATRIX：零矩阵
      */
     Matrix(size_t size, MatrixType type);
     size_t getRowNumber() const;

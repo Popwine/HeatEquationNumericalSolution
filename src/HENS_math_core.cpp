@@ -2,12 +2,17 @@
 #include <cmath>
 namespace HENS{
 
-Solver::Solver(int number): N_(number){
+Solver::Solver(size_t number): 
+N_(number), 
+M_(number, ZERO_MATRIX),
+K_(number, ZERO_MATRIX),
+F_(number, 1, 0.0)
+{
 
 }
 
 
-int Solver::getN() const{
+size_t Solver::getN() const{
     return N_;
 }
 
@@ -22,16 +27,45 @@ std::vector<std::vector<double>> Solver::residualIntegral(const double x1, const
     parameters[0][0] = parameters[1][0] = -PI * std::cos(PI * x2) - (-PI * std::cos(PI * x1));
 
     //处理
-    for(int j = 1; j <= getN(); j++){
+    for(size_t j = 1; j <= getN(); j++){
         parameters[0][j] = 1.0 / (j + 1) * std::pow(x2, j + 1.0) - 1.0 / (j + 2) * std::pow(x2, j + 2) - (1.0 / (j + 1.0) * std::pow(x1, j + 1.0) - 1.0 / (j + 2.0) * std::pow(x1, j + 2.0));
     }
 
     parameters[1][1] = 2.0 * x2 - 2.0 * x1;
 
-    for(int j = 2; j <= getN(); j++){
+    for(size_t j = 2; j <= getN(); j++){
         parameters[1][j] = -(j * std::pow(x2, j - 1.0) - (j + 1) * std::pow(x2, j)) + (j * std::pow(x1, j - 1) - (j + 1.0) * std::pow(x1, j));
     }
     return parameters;
 }
+
+void Solver::solve(){
+    // Integrate in N child domains.
+    for(size_t i = 0; i < getN(); i++){
+        auto parameters = residualIntegral(
+            static_cast<double>(i) / static_cast<double>(getN()),
+            static_cast<double>(i + 1) / static_cast<double>(getN())
+        );
+        for(size_t j = 0; j < getN(); j++){
+            M_.setValue(i, j, parameters[0][j + 1]);
+            K_.setValue(i, j, parameters[1][j + 1]);
+            
+        }
+        F_.setValue(i, 0, -parameters[0][0]);
+    }
+
+    //
+
+}
+void Solver::printMatrices(){
+    std::cout<< "M:" << std::endl;
+    M_.print();
+    std::cout<< "K:" << std::endl;
+    K_.print();
+    std::cout<< "F:" << std::endl;
+    F_.print();
+
+}
+
 
 }

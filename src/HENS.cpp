@@ -3,16 +3,7 @@
 #include "HENS_math_core.h"
 #include "HENS_matrix.h"
 
-int main(){
-    HENS::Solver mainSolver(1);
-    auto vec = mainSolver.residualIntegral(0.0, 1.0);
-    for(auto& col : vec){
-        for(auto& number : col){
-            std::cout << number << " ";
-        }
-        std::cout << std::endl;
-    }
-
+void testMatrix(){
     HENS::Matrix m(4,4,2.0);
     m.setValue(0, 0, 2);
     m.setValue(0, 1, 3);
@@ -35,5 +26,19 @@ int main(){
     auto I = mInverse * m;
     I.print();
     std::cout << "-------------------" << std::endl;
+}
+int main(){
+    HENS::Solver mainSolver(3);
+    auto vec = mainSolver.residualIntegral(0.0, 1.0);
+    for(auto& col : vec){
+        for(auto& number : col){
+            std::cout << number << " ";
+        }
+        std::cout << std::endl;
+    }
+    mainSolver.solve();
+    mainSolver.printMatrices();
+
+    
     
 }

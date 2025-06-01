@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <functional>
 
 namespace HENS{
 enum MatrixType{

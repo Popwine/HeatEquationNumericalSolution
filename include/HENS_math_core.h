@@ -21,10 +21,19 @@ public:
     std::vector<std::vector<double>> residualIntegral(const double x1, const double x2) const;
     void solve();
     void printMatrices();
+    /**
+     * @brief Runge-Kutta
+     */
+    std::vector<double> RK4(
+        std::vector<double>& XInitial,
+        std::vector<std::function<double(std::vector<double>)>>& funcs,
+        double stepSize,
+        double endTime
+    );
 
 };
 
-
+void printVec(std::vector<double> vec);
 
 }
 

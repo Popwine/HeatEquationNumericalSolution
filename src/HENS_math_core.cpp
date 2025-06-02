@@ -2,11 +2,12 @@
 #include <cmath>
 namespace HENS{
 
-Solver::Solver(size_t number): 
+Solver::Solver(size_t number, ResdualMethod method): 
 N_(number), 
 M_(number, ZERO_MATRIX),
 K_(number, ZERO_MATRIX),
-F_(number, 1, 0.0)
+F_(number, 1, 0.0),
+method_(method)
 {
 
 }
@@ -18,34 +19,84 @@ size_t Solver::getN() const{
 
 
 /**
- * @brief 返回残差的在区间x1到x2的积分
+ * @brief 返回第i个方程的系数
  * @return 二维vector vec[i][j]，i=0代表对时间的导数aj点的系数，i=1代表aj的系数，j=0时，不管i等于几，都代表常数项。
  */
-std::vector<std::vector<double>> Solver::residualIntegral(const double x1, const double x2) const{
+std::vector<std::vector<double>> Solver::residualIntegral(const int i) const{
 
     std::vector<std::vector<double>> parameters(2, std::vector<double>(getN() + 1, 0.0));
-    parameters[0][0] = parameters[1][0] = -PI * std::cos(PI * x2) - (-PI * std::cos(PI * x1));
+    
 
-    //处理
-    for(size_t j = 1; j <= getN(); j++){
-        parameters[0][j] = 1.0 / (j + 1) * std::pow(x2, j + 1.0) - 1.0 / (j + 2) * std::pow(x2, j + 2) - (1.0 / (j + 1.0) * std::pow(x1, j + 1.0) - 1.0 / (j + 2.0) * std::pow(x1, j + 2.0));
+    if(method_ == SUBDOMAIN){
+        double x1 = static_cast<double>(i) / static_cast<double>(getN());
+        double x2 = static_cast<double>(i + 1) / static_cast<double>(getN());
+        parameters[0][0] = parameters[1][0] = -PI * std::cos(PI * x2) - (-PI * std::cos(PI * x1));
+        for(size_t j = 1; j <= getN(); j++){
+            parameters[0][j] = 1.0 / (j + 1) * std::pow(x2, j + 1.0) - 1.0 / (j + 2) * std::pow(x2, j + 2) - (1.0 / (j + 1.0) * std::pow(x1, j + 1.0) - 1.0 / (j + 2.0) * std::pow(x1, j + 2.0));
+        }
+
+        parameters[1][1] = 2.0 * x2 - 2.0 * x1;
+
+        for(size_t j = 2; j <= getN(); j++){
+            
+            parameters[1][j] = -(j * std::pow(x2, j - 1.0) 
+            - (j + 1) * std::pow(x2, j)) 
+            + (j * std::pow(x1, j - 1) 
+            - (j + 1.0) * std::pow(x1, j));
+        }
+    }else if(method_ == GALERKIN){
+        // funcs[0][0] and funcs[0][0] stand for constant
+        std::vector<std::vector<std::function<double(double)>>> funcs(2);
+        funcs[0].push_back([i](double x){
+            return PI * PI * std::sin(PI * x)*(std::pow(x, i+1) - std::pow(x, i+2));
+        });
+        funcs[1].push_back(funcs[0][0]);
+        // functions for a dot
+        for(size_t j = 1; j <= getN(); j++){
+            //(x^j - x^(j+1))(x^(i+1) - x^(i+2))
+            funcs[0].push_back([i, j](double x){
+                return (std::pow(x, j) - std::pow(x, j + 1))
+                *(std::pow(x, i+1) - std::pow(x, i+2));
+            });
+        }
+        // functions for a
+        funcs[1].push_back([i](double x){return 2.0 * (std::pow(x, i+1) - std::pow(x, i+2));});
+        for(size_t j = 2; j <= getN(); j++){
+            funcs[1].push_back([i, j](double x){
+                return -(j*(j-1) * pow(x, j - 2) - (j+1)*j * std::pow(x, j-1))
+                *(std::pow(x, i+1) - std::pow(x, i+2));
+            });
+        }
+        for(size_t j = 0; j <= getN(); j++){
+            parameters[0][j] = simpsonIntegral(funcs[0][j],0.0, 1.0, 8192);
+            parameters[1][j] = simpsonIntegral(funcs[1][j],0.0, 1.0, 8192);
+        }
+    }else if(method_ == COLLOCATION){
+        //std::cout << "COLLOCATION" << std::endl;
+        double x = static_cast<double>(i + 1) / static_cast<double>(getN() + 1);
+        //std::cout <<"x:"<< x <<std::endl;
+        parameters[0][0] = parameters[1][0] = PI * PI * std::sin(PI*x);
+        for(size_t j = 1; j <= getN(); j++){
+            parameters[0][j] = std::pow(x, j) - std::pow(x, j+1);
+        }
+
+        parameters[1][1] = 2.0;
+
+        for(size_t j = 2; j <= getN(); j++){
+            
+            parameters[1][j] = -(j*(j-1) * pow(x, j - 2) - (j+1)*j * std::pow(x, j-1));
+        }
+
     }
 
-    parameters[1][1] = 2.0 * x2 - 2.0 * x1;
-
-    for(size_t j = 2; j <= getN(); j++){
-        parameters[1][j] = -(j * std::pow(x2, j - 1.0) - (j + 1) * std::pow(x2, j)) + (j * std::pow(x1, j - 1) - (j + 1.0) * std::pow(x1, j));
-    }
+    
     return parameters;
 }
 
 void Solver::solve(){
     // Integrate in N child domains.
     for(size_t i = 0; i < getN(); i++){
-        auto parameters = residualIntegral(
-            static_cast<double>(i) / static_cast<double>(getN()),
-            static_cast<double>(i + 1) / static_cast<double>(getN())
-        );
+        auto parameters = residualIntegral(i);
         for(size_t j = 0; j < getN(); j++){
             M_.setValue(i, j, parameters[0][j + 1]);
             K_.setValue(i, j, parameters[1][j + 1]);
@@ -190,5 +241,36 @@ void printVec(std::vector<double> vec){
     }
     std::cout << std::endl;
 }
+
+
+
+double simpsonIntegral(
+    std::function<double(double)> func,
+    double x1, double x2,
+    int N
+){
+    if(N % 2 != 0){
+        throw std::runtime_error("N must be even number in simpsonIntegral");
+    }
+    double h = (x2 - x1) / (static_cast<double>(N));
+    double sum = 0.0;
+    for(int i = 0; i <= N; i++){
+        if(i == 0 || i == N){
+            sum += func(x1 + i * h);
+        }else{
+            if(i % 2 == 1){
+                //odd
+                sum += 4 * func(x1 + i * h);
+            }else{
+                //even
+                sum += 2 * func(x1 + i * h);
+            }
+            
+        }
+    }
+    sum = h / 3.0 * sum;
+    return sum;
+}
+
 
 }

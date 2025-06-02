@@ -2,11 +2,17 @@
 #define HNE_MATH_CORE_H
 
 #include <vector>
+#include <functional>
 #include "HENS_matrix.h"
 #define PI 3.141592653589793238462643
 
 namespace HENS{
+enum ResdualMethod{
+    GALERKIN,
+    SUBDOMAIN,
+    COLLOCATION
 
+};
 class Solver{
     
 private:
@@ -14,11 +20,12 @@ private:
     Matrix M_;
     Matrix K_;
     Matrix F_;
+    ResdualMethod method_;
 public:
     
-    Solver(size_t number);
+    Solver(size_t number, ResdualMethod method);
     size_t getN() const;
-    std::vector<std::vector<double>> residualIntegral(const double x1, const double x2) const;
+    std::vector<std::vector<double>> residualIntegral(const int i) const;
     void solve();
     void printMatrices();
     /**
@@ -34,6 +41,13 @@ public:
 };
 
 void printVec(std::vector<double> vec);
+
+
+double simpsonIntegral(
+    std::function<double(double)> func,
+    double x1, double x2,
+    int N
+);
 
 }
 

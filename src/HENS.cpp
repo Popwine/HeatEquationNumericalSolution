@@ -27,18 +27,18 @@ void testMatrix(){
     I.print();
     std::cout << "-------------------" << std::endl;
 }
+double func(double x){
+    return std::sin(PI * x);
+}
 int main(){
-    HENS::Solver mainSolver(5);
-    auto vec = mainSolver.residualIntegral(0.0, 1.0);
-    for(auto& col : vec){
-        for(auto& number : col){
-            std::cout << number << " ";
-        }
-        std::cout << std::endl;
-    }
-    mainSolver.solve();
-    mainSolver.printMatrices();
+    HENS::Solver mainSolver(7, HENS::ResdualMethod::COLLOCATION);
 
     
     
+    mainSolver.solve();
+    mainSolver.printMatrices();
+    
+
+
+
 }

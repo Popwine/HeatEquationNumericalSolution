@@ -26,7 +26,7 @@ public:
     Solver(size_t number, ResdualMethod method);
     size_t getN() const;
     std::vector<std::vector<double>> residualIntegral(const int i) const;
-    void solve();
+    std::vector<double> solve();
     void printMatrices();
     /**
      * @brief Runge-Kutta

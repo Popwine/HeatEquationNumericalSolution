@@ -2,6 +2,8 @@
 #include <cmath>
 #include "HENS_math_core.h"
 #include "HENS_matrix.h"
+#include <fstream>
+#include <iomanip>
 
 void testMatrix(){
     HENS::Matrix m(4,4,2.0);
@@ -31,12 +33,34 @@ double func(double x){
     return std::sin(PI * x);
 }
 int main(){
-    HENS::Solver mainSolver(7, HENS::ResdualMethod::COLLOCATION);
+    std::ofstream outfile("output.txt");
+    outfile << std::fixed << std::setprecision(10);
+    for(int N = 1; N <=7; N +=2){
+        HENS::Solver mainSolver(N, HENS::ResdualMethod::GALERKIN);
+        auto X = mainSolver.solve();
+        for(auto& x : X){
+            outfile << x <<"\t";
+        }
+        outfile << std::endl;
+    }
+    for(int N = 1; N <=7; N +=2){
+        HENS::Solver mainSolver(N, HENS::ResdualMethod::SUBDOMAIN);
+        auto X = mainSolver.solve();
+        for(auto& x : X){
+            outfile << x <<"\t";
+        }
+        outfile << std::endl;
+    }
+    for(int N = 1; N <=7; N +=2){
+        HENS::Solver mainSolver(N, HENS::ResdualMethod::COLLOCATION);
+        auto X = mainSolver.solve();
+        for(auto& x : X){
+            outfile << x <<"\t";
+        }
+        outfile << std::endl;
+    }
 
     
-    
-    mainSolver.solve();
-    mainSolver.printMatrices();
     
 
 

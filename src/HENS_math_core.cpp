@@ -93,7 +93,7 @@ std::vector<std::vector<double>> Solver::residualIntegral(const int i) const{
     return parameters;
 }
 
-void Solver::solve(){
+std::vector<double> Solver::solve(){
     // Integrate in N child domains.
     for(size_t i = 0; i < getN(); i++){
         auto parameters = residualIntegral(i);
@@ -157,8 +157,8 @@ void Solver::solve(){
 
     std::vector<double> XInitial(getN() + 1, 0.0);
     
-    auto XEnd = RK4(XInitial, funcs, 0.2*0.01, 0.2);
-
+    auto XEnd = RK4(XInitial, funcs, 0.2 / 1000, 0.2);
+    return XEnd;
 
 
 }
@@ -220,16 +220,16 @@ std::vector<double> Solver::RK4(
             X[i] = X[i] + 1.0 / 6.0 * stepSize * (K1[i] + 2.0 * K2[i] + 2.0 * K3[i] + K4[i]);
             
         }
-        std::cout << "K1:" << std::endl;
-        printVec(K1);
-        std::cout << "K2:" << std::endl;
-        printVec(K2);
-        std::cout << "K3:" << std::endl;
-        printVec(K3);
-        std::cout << "K4:" << std::endl;
-        printVec(K4);
-        std::cout << "X:" << std::endl;
-        printVec(X);
+        // std::cout << "K1:" << std::endl;
+        // printVec(K1);
+        // std::cout << "K2:" << std::endl;
+        // printVec(K2);
+        // std::cout << "K3:" << std::endl;
+        // printVec(K3);
+        // std::cout << "K4:" << std::endl;
+        // printVec(K4);
+        // std::cout << "X:" << std::endl;
+        // printVec(X);
 
     }
     return X;
@@ -269,7 +269,7 @@ double simpsonIntegral(
         }
     }
     sum = h / 3.0 * sum;
-    return sum;
+    return sum; 
 }
 
 

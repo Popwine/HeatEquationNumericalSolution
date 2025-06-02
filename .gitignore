@@ -118,3 +118,5 @@ MANIFEST
 # Package manager files (if you use others like Conan, vcpkg)
 # conanbuildinfo.cmake
 # vcpkg_installed/
+
+*.pdf

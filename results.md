@@ -1,112 +1,8 @@
-# 项目：求解一维热传导方程的加权残量法
-
-本项目是为了解决 C.A.J. Fletcher 的书 *Computational Techniques for Fluid Dynamics 1* 第157页的问题5.2。该问题要求使用三种不同的加权残量法（伽辽金法、子区域法、配点法）求解一个无量纲化的一维热传导方程。
-
-## 问题描述
-
-通过适当的无量纲化，扩散或热传导方程可以写成：
-
-$$
-\frac{\partial \bar{\theta}}{\partial t} - \frac{\partial^2 \bar{\theta}}{\partial x^2} = 0 。
-$$
-
-给定初始条件 $\bar{\theta}(x,0) = \sin(\pi x) + x$，以及边界条件 $\bar{\theta}(0,t) = 0$，$\bar{\theta}(1,t) = 1.0$，在计算区域 $0 \leq x \leq 1.0$，$0 \leq t \leq 0.20$ 内求解。
-
-应使用下述近似解形式：
-
-$$
-\theta_{近似} = \sin(\pi x) + x + \sum_{j=1}^{N} a_j(t) \left( x^j - x^{j+1} \right) 。
-$$
-
-目标是针对 $N = 1, 3, 5, 7$ 的情形，使用伽辽金法、子区域法和配点法分别求解，并比较其精度与收敛特性。
-
-该问题的精确解为：
-
-$$
-\bar{\theta}_{精确} = \sin(\pi x) e^{-\pi^2 t} + x。
-$$
-
-## 项目结构
-
-```
-C:.
-├───.vscode                 # VS Code 编辑器配置
-├───build                   # CMake 构建输出目录 (被 .gitignore 忽略)
-├───HENS_plot               # Python 绘图脚本及虚拟环境
-│   ├───.venv               # Python 虚拟环境 (被 .gitignore 忽略)
-│   ├───plot.py             # Python 脚本，用于读取 C++ 输出并绘图、计算误差
-│   ├───pyproject.toml      # Python 项目配置文件 (如使用 Poetry, Hatch, etc.)
-│   ├───README.md           # Python 绘图部分的说明
-├───include                 # C++ 头文件目录
-│   ├───HENS_math_core.h    # 求解器核心逻辑和数学工具的头文件
-│   └───HENS_matrix.h       # 矩阵类定义头文件
-├───src                     # C++ 源文件目录
-│   ├───HENS_math_core.cpp  # 求解器核心逻辑和数学工具的实现
-│   ├───HENS_matrix.cpp     # 矩阵类的实现
-│   └───HENS.cpp            # 主程序 (main 函数)
-├───.gitignore              # Git 忽略文件配置
-├───CMakeLists.txt          # CMake 构建系统配置文件
-├───output.txt              # C++ 程序输出的 a_j(t) 系数值 (被 .gitignore 忽略)
-├───readme.md               # 本项目的主要说明文件
-└───run.ps1                 # PowerShell 运行脚本
-```
-
-## 编译与运行
-
-### C++ 部分
-
-1.  确保已安装 CMake 和 C++ 编译器 (如 GCC, Clang, MSVC)。
-2.  创建构建目录并进入：
-    ```bash
-    mkdir build
-    cd build
-    ```
-3.  运行 CMake 配置项目：
-    ```bash
-    cmake ..
-    ```
-4.  编译项目：
-    ```bash
-    cmake --build .
-    # 或者直接使用 make (Linux/macOS) 或 nmake/msbuild (Windows)
-    ```
-5.  运行生成的可执行文件 (通常在 `build` 目录下，名称可能为 `HENS` 或 `HENS.exe`)：
-    ```bash
-    ./HENS
-    # 或者在 Windows 上
-    .\HENS.exe
-    ```
-    这将生成 `output.txt` 文件在项目根目录。
-
-### Python 绘图部分
-
-1.  导航到 `HENS_plot` 目录：
-    ```bash
-    cd HENS_plot
-    ```
-2.  (推荐) 创建并激活 Python 虚拟环境：
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # Linux/macOS
-    # .venv\Scripts\activate   # Windows
-    ```
-3.  安装必要的 Python 包：
-    ```bash
-    pip install numpy matplotlib tabulate
-    ```
-4.  运行绘图脚本 `plot.py` (确保 `output.txt` 在其预期的相对路径，通常是 `../output.txt`)：
-    ```bash
-    python plot.py
-    ```
-    这将显示比较图，并将图像保存为 `solution_comparison_rmse.png`，同时在控制台输出 RMSE 误差表格。
-
-## 结果
+![数值解与精确解比较](HENS_plot/solution_comparison_rmse.png)
 
 ### 数值解与精确解比较图
 
-下图展示了在 $t=0.20$ 时，不同方法和不同 $N$ 值下的数值解（红色虚线）与精确解（黑色实线）的比较，并在每个子图中显示了均方根误差 (RMSE)。
-
-![数值解与精确解比较](HENS_plot/solution_comparison_rmse.png)
+第2页的图1展示了在 $t=0.20$ 时，不同方法和不同 $N$ 值下的数值解（红色虚线）与精确解（黑色实线）的比较，并在每个子图中显示了均方根误差 (RMSE)。
 
 ### 均方根误差 (RMSE) 总结
 
@@ -163,4 +59,3 @@ C:.
 *   对配点法的配点选择策略进行研究（如使用高斯点）。
 *   扩展到二维问题。
 *   将 C++ 计算核心与 Python 绘图更紧密地集成（例如通过 pybind11）。
-

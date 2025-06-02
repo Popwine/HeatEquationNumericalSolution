@@ -1,0 +1,1 @@
+pandoc results.md -o results.pdf --pdf-engine=xelatex -V documentclass=ctexart -V geometry:"top=2cm, bottom=2cm, left=2.5cm, right=2.5cm"

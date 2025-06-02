@@ -120,3 +120,5 @@ MANIFEST
 # vcpkg_installed/
 
 *.pdf
+
+results.md

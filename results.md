@@ -1,3 +1,5 @@
+### 计算结果与分析
+
 ![数值解与精确解比较](HENS_plot/solution_comparison_rmse.png)
 
 ### 数值解与精确解比较图
